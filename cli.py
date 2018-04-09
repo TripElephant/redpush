@@ -46,7 +46,7 @@ def sort_queries(queries):
 def cli():
     pass
 
-@click.command()
+@cli.command()
 @click.option('--redash-url')
 @click.option('--api-key', help="API Key")
 @click.option('-o', '--out-file', help="File to store the queries", type=str)
@@ -73,10 +73,11 @@ def push(redash_url, api_key, in_file):
         click.echo('No file provided')
         return
     server = redash.Redash(redash_url, api_key)
-    old = server.Get_Queries()
+    old_queries = server.Get_Queries()
+    old_queries = server.Get_Full_Queries(old_queries)
 
     new = read_yaml(in_file)
-    server.Put_Queries(old, new)
+    server.Put_Queries(old_queries, new)
 
 @cli.command()
 @click.option('--redash-url')
@@ -109,6 +110,8 @@ def diff(redash_url, api_key, in_file):
 
 
 @cli.command()
+@click.option('--redash-url')
+@click.option('--api-key', help="API Key")
 @click.option('-o', '--out-file', help="File to store the queries", type=str)
 def dashboards(redash_url, api_key, out_file):
     if out_file is None:

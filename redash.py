@@ -74,7 +74,7 @@ class Redash:
             if old_query != None:
                 # we are updating the query
                 id = old_query['id']
-                print('updating queery ' +str(id))
+                print('updating query ' +str(id))
                 extra_path = '/'+str(id)
             
             if 'options' not in query:
@@ -92,22 +92,46 @@ class Redash:
             if visualizations != None:
                 for visualization in visualizations:
                     visualization['query_id'] = id
-                    self.Put_Visualization(visualization)
+                    self.Put_Visualization(visualization, old_query)
             # print(response)
 
 
-    def Put_Visualization(self, visualization):
+    def Put_Visualization(self, visualization, old_query):
         """
             Upload the visualizations to the given redash server
             If it has visualizations it will put them also
             It uses the field (hack) `redpush_id` to find the query in redash server
             and update it if there. If the query being uploaded doesn't have that property
             it will not be uploaded.
+            It needs also the old query if already there, so we update the visuals and
+            not create duplicates
         """
+
+        if 'redpush_id' not in visualization:
+            print('Visualization without tracking id, ignored')
+            return
+
         headers = {'Authorization': 'Key {}'.format(self.api_key)}
         path = "{}/api/visualizations".format(self.url)
-        response = requests.post(path, headers=headers, json=visualization)
-        # print(response)
+
+        redpush_id = visualization['redpush_id']
+        del visualization['redpush_id']
+        
+        extra_path = ''
+        
+        if old_query != None:
+            # we are updating so we need to find the id first
+            filtered = list(filter(lambda x: 'redpush_id' in x and  x['redpush_id'] == redpush_id, old_query['visualizations']))
+            if filtered:
+                if len(filtered) > 1:
+                    print('There are repeated visuals. Using the first')
+                old_id = filtered[0]['id']
+                extra_path = '/{}'.format(id)
+
+        if 'options' not in visualization:
+            visualization['options'] = {}
+        visualization['options']['redpush_id'] = redpush_id
+        response = requests.post(path + extra_path, headers=headers, json=visualization)
 
     def Get_Dashboards(self):
         """
@@ -126,6 +150,15 @@ class Redash:
             slug = dash_id['slug']
             path_id = path_id_template.format(self.url,slug)
             dashboard = requests.get(path_id, headers=headers).json()
+
+            # we need to filter some stuff, mostly inside the widgets
+            dashboard = self.filter_fields_blacklist(dashboard, ['updated_at', 'created_at', 'is_archived', 'is_draft', 'version'])
+            if 'widgets' in dashboard:
+                filtered_widgets = []
+                for widget in dashboard['widgets']:
+                    filt_widget = self.filter_fields_blacklist(widget, ['updated_at', 'created_at', 'is_archived', 'is_draft', 'version', 'visualization'])
+                    filtered_widgets.append(filt_widget)
+                dashboard['widgets'] = filtered_widgets
             dashboards.append(dashboard)
 
         return dashboards
@@ -142,6 +175,11 @@ class Redash:
                 if valid_key == 'visualizations':
                     # if there is a visualizations key, we need to do some cleanup also
                     new_query[valid_key] = list(map(lambda i: self.filter_fields_blacklist(i,['created_at', 'updated_at']), query[valid_key]))
+                    for visualization in new_query['visualizations']:
+                        if 'options' in visualization and 'redpush_id' in visualization['options']:
+                            redpush_id = visualization['options']['redpush_id']
+                            del visualization['options']['redpush_id']
+                            visualization['redpush_id'] = redpush_id
                 elif valid_key == 'options':
                     # check if we have the redpush_id and if we do put it in the query
                     # print([query['options']])
