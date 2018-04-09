@@ -74,13 +74,61 @@ class Redash:
             if old_query != None:
                 # we are updating the query
                 id = old_query['id']
+                print('updating queery ' +str(id))
                 extra_path = '/'+str(id)
             
             if 'options' not in query:
                 query['options'] = {}
             query['options']['redpush_id'] = redpush_id
-            response = requests.post(path + extra_path, headers=headers, json=query)
+            query['is_draft'] = False
+            query['is_archived'] = False
+            if 'visualizations' in query:
+                visualizations = query['visualizations']
+                query['visualizations'] = None # visualizations need to be uploaded in a diff call
+            response = requests.post(path + extra_path, headers=headers, json=query).json()
+            
+            id = response['id']
+            # Now we handle the visualization
+            if visualizations != None:
+                for visualization in visualizations:
+                    visualization['query_id'] = id
+                    self.Put_Visualization(visualization)
             # print(response)
+
+
+    def Put_Visualization(self, visualization):
+        """
+            Upload the visualizations to the given redash server
+            If it has visualizations it will put them also
+            It uses the field (hack) `redpush_id` to find the query in redash server
+            and update it if there. If the query being uploaded doesn't have that property
+            it will not be uploaded.
+        """
+        headers = {'Authorization': 'Key {}'.format(self.api_key)}
+        path = "{}/api/visualizations".format(self.url)
+        response = requests.post(path, headers=headers, json=visualization)
+        # print(response)
+
+    def Get_Dashboards(self):
+        """
+            Get all dashboards from the given redash server
+            For that it needs to first get the list and then get the details of each one
+
+        """
+        headers = {'Authorization': 'Key {}'.format(self.api_key)}
+        path = "{}/api/dashboards".format(self.url)
+        dash_id_list = requests.get(path, headers=headers).json()
+        
+        path_id_template = "{}/api/dashboards/{}"
+        dashboards = []
+        # now we get the details
+        for dash_id in dash_id_list:
+            slug = dash_id['slug']
+            path_id = path_id_template.format(self.url,slug)
+            dashboard = requests.get(path_id, headers=headers).json()
+            dashboards.append(dashboard)
+
+        return dashboards
 
     def filter_fields_query(self, query):
         """
@@ -126,14 +174,12 @@ class Redash:
 
         return new_item
 
-    def find_by_redpush_id(self, queries, id):
+    def find_by_redpush_id(self, queries, redpush_id):
         """
             find a query in a list of queries that has the given redpush_id 
         """
         for query in queries:
-            if 'options' in query:
-                options = query['options']
-                if 'redpush_id' in options:
-                    if options['redpush_id'] == id:
-                        return query
+            if 'redpush_id' in query:
+                if query['redpush_id'] == redpush_id:
+                    return query
     
