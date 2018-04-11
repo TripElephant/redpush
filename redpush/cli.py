@@ -5,11 +5,11 @@
 import click
 import requests
 from ruamel import yaml
-import redash
 import difflib
 import sys
 from ruamel.yaml.compat import StringIO
 from operator import itemgetter
+from redpush import redash
 
 def save_yaml(queries, filename):
     """
@@ -47,8 +47,8 @@ def cli():
     pass
 
 @cli.command()
-@click.option('--redash-url')
-@click.option('--api-key', help="API Key")
+@click.option('--redash-url',envvar='REDASH_URL')
+@click.option('--api-key',envvar='REDASH_KEY', help="API Key")
 @click.option('-o', '--out-file', help="File to store the queries", type=str)
 @click.option('-v','--visualizations', is_flag=True, help='Get the visualizations also')
 def dump(redash_url, api_key, out_file, visualizations):
@@ -64,8 +64,8 @@ def dump(redash_url, api_key, out_file, visualizations):
     save_yaml(queries, out_file)
 
 @cli.command()
-@click.option('--redash-url')
-@click.option('--api-key', help="API Key")
+@click.option('--redash-url',envvar='REDASH_URL')
+@click.option('--api-key',envvar='REDASH_KEY', help="API Key")
 @click.option('-i', '--in-file', help="File to read the queries from", type=str)
 def push(redash_url, api_key, in_file):
     
@@ -80,8 +80,8 @@ def push(redash_url, api_key, in_file):
     server.Put_Queries(old_queries, new)
  
 @cli.command()
-@click.option('--redash-url')
-@click.option('--api-key', help="API Key")
+@click.option('--redash-url',envvar='REDASH_URL')
+@click.option('--api-key',envvar='REDASH_KEY', help="API Key")
 @click.option('-i', '--in-file', help="File to read the queries from", type=str)
 def diff(redash_url, api_key, in_file):
     
@@ -110,8 +110,8 @@ def diff(redash_url, api_key, in_file):
 
 
 @cli.command()
-@click.option('--redash-url')
-@click.option('--api-key', help="API Key")
+@click.option('--redash-url',envvar='REDASH_URL')
+@click.option('--api-key',envvar='REDASH_KEY', help="API Key")
 @click.option('-o', '--out-file', help="File to store the queries", type=str)
 def dashboards(redash_url, api_key, out_file):
     if out_file is None:
