@@ -17,15 +17,17 @@ def save_yaml(queries, filename):
     """
     stream = open(filename, 'w')
     yaml.scalarstring.walk_tree(queries)
-    yaml.dump(queries, stream,Dumper=yaml.RoundTripDumper) 
+    yaml.dump(queries, stream,Dumper=yaml.RoundTripDumper)
+    stream.close()
 
 def read_yaml(filename):
-        """
-            Load the queries from a yaml file
-        """
-        file = open(filename, 'r')
-        contents = yaml.load(file, yaml.RoundTripLoader)
-        return contents
+    """
+        Load the queries from a yaml file
+    """
+    file = open(filename, 'r')
+    contents = yaml.load(file, yaml.RoundTripLoader)
+    file.close()
+    return contents
 
 def sort_queries(queries):
     """
@@ -121,7 +123,6 @@ def dashboards(redash_url, api_key, out_file):
     dashboards = server.Get_Dashboards()
 
     save_yaml(dashboards, out_file)
-
 
 
 if __name__ == '__main__':

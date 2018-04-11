@@ -29,7 +29,7 @@ This is used to show the diff from server to file. It is still a work in progres
 
 ### dashboard
 
-This is to output the dashboard configs in _yaml_. More for debugging purposes than anything else, as those files are not used for anything in the tool.
+This is to serialize the dashboards from a redash server to  _yaml_. More for debugging purposes than anything else, as those files cannot be used for anything in the tool.
 
 
 ## Example file
