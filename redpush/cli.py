@@ -52,17 +52,14 @@ def cli():
 @click.option('--redash-url',envvar='REDASH_URL')
 @click.option('--api-key',envvar='REDASH_KEY', help="API Key")
 @click.option('-o', '--out-file', help="File to store the queries", type=str)
-@click.option('-v','--visualizations', is_flag=True, help='Get the visualizations also')
-def dump(redash_url, api_key, out_file, visualizations):
+def dump(redash_url, api_key, out_file):
     if out_file is None:
         click.echo('No out file provided')
         return
     server = redash.Redash(redash_url, api_key)
     queries = server.Get_Queries()
-
-    if visualizations:
-        queries = server.Get_Full_Queries(queries)
-        
+    queries = server.Get_Full_Queries(queries)
+    
     save_yaml(queries, out_file)
 
 @cli.command()
