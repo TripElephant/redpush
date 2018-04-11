@@ -78,7 +78,7 @@ def push(redash_url, api_key, in_file):
 
     new = read_yaml(in_file)
     server.Put_Queries(old_queries, new)
-
+ 
 @cli.command()
 @click.option('--redash-url')
 @click.option('--api-key', help="API Key")
@@ -118,9 +118,10 @@ def dashboards(redash_url, api_key, out_file):
         click.echo('No out file provided')
         return
     server = redash.Redash(redash_url, api_key)
-    dashboardas = server.Get_Dashboards()
+    dashboards = server.Get_Dashboards()
 
-    save_yaml(dashboardas, out_file)
+    save_yaml(dashboards, out_file)
+
 
 
 if __name__ == '__main__':
