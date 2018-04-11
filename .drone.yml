@@ -2,19 +2,17 @@ pipeline:
 
   docker-commit:
     image: plugins/docker
-    repo: comptel/ctrl
+    repo: comptel/redpush
     tags:
       - ${DRONE_BRANCH}
       - ${DRONE_COMMIT}
     secrets: [ docker_username, docker_password ]
     when:
       event: push
-      branch:
-        exclude: nightly
 
   docker-tag:
     image: plugins/docker
-    repo: comptel/ctrl
+    repo: comptel/redpush
     tags:
       - ${DRONE_TAG}
     secrets: [ docker_username, docker_password ]
@@ -34,9 +32,3 @@ pipeline:
     secrets: [ slack_blame_api_key, slack_blame_url, slack_blame_webhook ]
     when:
       status: failure
-
-services:
-  mongo:
-    image: mongo:3.4
-  redis:
-    image: redis:3.2
