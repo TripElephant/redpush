@@ -149,15 +149,15 @@ class Redash:
         # if there is redpush_dashboard then lets check if we need to add to dashboard
         if redpush_dashboards:
             dash_list = self.Get_Dashboards()
-            for slug_id in redpush_dashboards:
+            for dash_name in redpush_dashboards:
                 # check if that dashboard is already in server, and if not create it
-                filtered_dash_list = list(filter(lambda x: x['name'] == slug_id, dash_list)) #check against name, as if deleted it would get a new slug
+                filtered_dash_list = list(filter(lambda x: x['name'] == dash_name, dash_list)) #check against name, as if deleted it would get a new slug
                 if filtered_dash_list:
                     if len(filtered_dash_list) > 1:
                         print('More than one dashboard with the same id, error!!!')
                     dash = filtered_dash_list[0]
                 else:
-                    dash = self.Create_Dashboard(slug_id)
+                    dash = self.Create_Dashboard(dash_name)
                     dash_list = self.Get_Dashboards()
 
                 # check if visual already in dashboard, and if not add it
@@ -215,7 +215,7 @@ class Redash:
             if 'widgets' in dashboard:
                 filtered_widgets = []
                 for widget in dashboard['widgets']:
-                    filt_widget = self.filter_fields_blacklist(widget, ['updated_at', 'created_at', 'is_archived', 'is_draft', 'version', 'visualization'])
+                    filt_widget = self.filter_fields_blacklist(widget, ['updated_at', 'created_at', 'is_archived', 'is_draft', 'version'])
                     filtered_widgets.append(filt_widget)
                 dashboard['widgets'] = filtered_widgets
             dashboards.append(dashboard)
