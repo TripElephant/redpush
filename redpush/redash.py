@@ -150,8 +150,8 @@ class Redash:
         if redpush_dashboards:
             dash_list = self.Get_Dashboards()
             for slug_id in redpush_dashboards:
-                # check if that dashboard is alredy in server, and if not create it
-                filtered_dash_list = list(filter(lambda x: x['slug'] == slug_id, dash_list))
+                # check if that dashboard is already in server, and if not create it
+                filtered_dash_list = list(filter(lambda x: x['name'] == slug_id, dash_list)) #check against name, as if deleted it would get a new slug
                 if filtered_dash_list:
                     if len(filtered_dash_list) > 1:
                         print('More than one dashboard with the same id, error!!!')
