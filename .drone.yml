@@ -1,0 +1,34 @@
+pipeline:
+
+  docker-commit:
+    image: plugins/docker
+    repo: comptel/redpush
+    tags:
+      - ${DRONE_BRANCH}
+      - ${DRONE_COMMIT}
+    secrets: [ docker_username, docker_password ]
+    when:
+      event: push
+
+  docker-tag:
+    image: plugins/docker
+    repo: comptel/redpush
+    tags:
+      - ${DRONE_TAG}
+    secrets: [ docker_username, docker_password ]
+    when:
+      event: tag
+
+  slack:
+    image: plugins/slack
+    channel: builds
+    username: drone
+    secrets: [ slack_webhook ]
+    when:
+      status: [ failure, success ]
+
+  slack-blame:
+    image: comptel/slack-blamer:0.2
+    secrets: [ slack_blame_api_key, slack_blame_url, slack_blame_webhook ]
+    when:
+      status: failure
