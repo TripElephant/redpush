@@ -2,7 +2,7 @@
 version: '2'
 services:
   server:
-    image: redash/redash:4.0.0-rc.1
+    image: redash/redash:4.0.1.b4038
     command: server
     depends_on:
       - postgres
@@ -18,7 +18,7 @@ services:
       REDASH_WEB_WORKERS: 4
     restart: always
   worker:
-    image: redash/redash:4.0.0-rc.1
+    image: redash/redash:4.0.1.b4038
     command: scheduler
     environment:
       PYTHONUNBUFFERED: 0
@@ -38,11 +38,4 @@ services:
     restart: always
     ports:
       - "5432:5432"
-  clickhouse:
-    image: yandex/clickhouse-server:1.1.54327
-    ports:
-      - "8123:8123"
-      - "9000:9000"
-    volumes:
-       - ./clickhouse-data:/var/lib/clickhouse
   
