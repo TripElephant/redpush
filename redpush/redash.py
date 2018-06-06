@@ -297,4 +297,15 @@ class Redash:
             if 'redpush_id' in query:
                 if query['redpush_id'] == redpush_id:
                     return query
-    
+
+    def Create_Users(self, users):
+        """
+            Tries to create in Redash a list of users. users is a list of dicts with `name` and `email`
+            If the user is already created then it will silently fail
+        """
+        headers = {'Authorization': 'Key {}'.format(self.api_key)}
+        path = "{}/api/users".format(self.url)
+
+        for user in users:
+            response = requests.post(path, headers=headers, json=user).json()
+            print(response)

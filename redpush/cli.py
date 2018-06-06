@@ -4,6 +4,7 @@
 """
 import click
 import requests
+import csv
 from ruamel import yaml
 import difflib
 import sys
@@ -120,6 +121,27 @@ def dashboards(redash_url, api_key, out_file):
     dashboards = server.Get_Dashboards()
 
     save_yaml(dashboards, out_file)
+
+@cli.command()
+@click.option('--redash-url',envvar='REDASH_URL')
+@click.option('--api-key',envvar='REDASH_KEY', help="API Key")
+@click.option('-i', '--in-file', help="File (csv) to read users from. CSV format='name,lastname,email'", type=str)
+def users(redash_url, api_key, in_file):
+    if in_file is None:
+        click.echo('No file provided')
+        return
+    
+    users = []
+    with open(in_file) as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+                user = {'name': row[0] + ' ' + row[1], 'email': row[2]}   # TODO validation
+                users.append(user)
+
+    server = redash.Redash(redash_url, api_key)
+
+    dashboards = server.Create_Users(users)
+
 
 
 if __name__ == '__main__':
