@@ -69,7 +69,6 @@ class Redash:
 
             redpush_id = query['redpush_id']
             query.pop('redpush_id',None)
-            
 
             old_query = self.find_by_redpush_id(old_queries, redpush_id)
             # print(old_query)
@@ -77,9 +76,11 @@ class Redash:
             if old_query != None:
                 # we are updating the query
                 id = old_query['id']
-                print('updating query ' +str(id))
+                print('updating query ' + str(id), flush=True)
                 extra_path = '/'+str(id)
-            
+            else:
+                print('creating new query ' + query['name'], flush=True)
+
             if 'options' not in query:
                 query['options'] = {}
             query['options']['redpush_id'] = redpush_id
@@ -149,15 +150,15 @@ class Redash:
         # if there is redpush_dashboard then lets check if we need to add to dashboard
         if redpush_dashboards:
             dash_list = self.Get_Dashboards()
-            for dash_name in redpush_dashboards:
+            for widget_properties in redpush_dashboards:
                 # check if that dashboard is already in server, and if not create it
-                filtered_dash_list = list(filter(lambda x: x['name'] == dash_name, dash_list)) #check against name, as if deleted it would get a new slug
+                filtered_dash_list = list(filter(lambda x: x['name'] == widget_properties['name'], dash_list)) #check against name, as if deleted it would get a new slug
                 if filtered_dash_list:
                     if len(filtered_dash_list) > 1:
                         print('More than one dashboard with the same id, error!!!')
                     dash = filtered_dash_list[0]
                 else:
-                    dash = self.Create_Dashboard(dash_name)
+                    dash = self.Create_Dashboard(widget_properties['name'])
                     dash_list = self.Get_Dashboards()
 
                 # check if visual already in dashboard, and if not add it
@@ -170,28 +171,98 @@ class Redash:
                 else:
                     need_to_add_widget = True
 
-                # add it if needed to be added
+                visualization['id'] = visual_id # as we have the visualization from file, we need to put the id
+                row = 0
+                col = 0
+                if 'row' in widget_properties and widget_properties['row'] > 0:
+                    row = widget_properties['row'] 
+                if 'col' in widget_properties and widget_properties['col'] > 0:
+                    col = widget_properties['col'] 
                 if need_to_add_widget:
-                    visualization['id'] = visual_id # as we have the visualization from file, we need to put the id
-                    self.Create_Widget(dash['id'], visualization)
-                            
+                    self.Create_Widget(dash['id'], visualization, widget_properties)
+                else:
+                    first = filtered_widget_list[0]
+                    self.Update_Widget(dash['id'], first['id'], widget_properties)
 
-    def Create_Widget(self, dashboard_id, visual):
+    def Create_Widget(self, dashboard_id, visual, widget_properties):
         """
             Create a widget into a dashboard
         """
         headers = {'Authorization': 'Key {}'.format(self.api_key)}
         path = "{}/api/widgets".format(self.url)
 
+        position = self.get_Widget_position(widget_properties)
+
         widget = {
             'visualization': visual,
             'dashboard_id': dashboard_id,
             'visualization_id': visual['id'],
-            'options': {'sizeX': 3, 'sizeY': 8, 'minSizeX': 1, 'minSizeY': 5},
+            'options': {'position': position},
+            'width': 1
+        }
+
+        response = requests.post(path, headers=headers, json=widget).json()
+    
+    def get_Widget_position(self, widget_properties):
+        """
+            From the properties of a visualization in the yaml, we generate the position properties
+            that redash expects on the API
+        """
+        size = "medium"
+        if 'size' in widget_properties and len(widget_properties['size']) > 0:
+            size = widget_properties['size']
+        col = 0
+        if 'col' in widget_properties and widget_properties['col'] > 0:
+            col = widget_properties['col']
+        row = 0
+        if 'row' in widget_properties and widget_properties['row'] > 0:
+            row = widget_properties['row']
+        
+        multiplierDef = {
+            'small': 2,
+            'medium': 3,
+            'large': 1
+        }
+
+        sizeXDef = {    # defining how big in X the widgets are
+            'small': 2,
+            'medium': 3,
+            'large': 6  # max size in redash
+        }
+
+        sizeYDef = {    # defining how big in X the widgets are
+            'small': 4,
+            'medium': 8,
+            'large': 12
+        }
+        multiplier = multiplierDef[size]
+
+        position = {
+            'autoHeight': False,
+            'row': row,
+            'col': col * multiplier,
+            'sizeX': sizeXDef[size],
+            'sizeY': sizeYDef[size],
+        }
+        return position
+
+    def Update_Widget(self, dashboard_id, widget_id, widget_properties):
+        """
+            Update a widget already in a dashboard
+        """
+        headers = {'Authorization': 'Key {}'.format(self.api_key)}
+        path = "{}/api/widgets/{}".format(self.url,widget_id)
+
+        position = self.get_Widget_position(widget_properties)
+
+        widget = {
+            'dashboard_id': dashboard_id,
+            'options': {'position': position},
+            'text': '',
             'width': 1
         }
         response = requests.post(path, headers=headers, json=widget).json()
-        
+
     def Get_Dashboards(self):
         """
             Get all dashboards from the given redash server
