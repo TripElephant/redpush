@@ -35,7 +35,7 @@ This is to serialize the dashboards from a redash server to  _yaml_. More for de
 ## Example file
 
 '''yaml
-- name: 'A example query'
+- name: 'An example query'
   description:
   redpush_id: 1002  # some UNIQUE ID that will be used to track this query
   query: |-
