@@ -15,7 +15,7 @@ It connects to the Redash server to dump the current queries and visuals there. 
 
 This tool is to upload the queries, visuals, and dashboards to a server. `-i` for the source file.
 
-There are a few tricks used by the tool to be able to manage those queries in Redash. If you start from a file generated from the `dump` commnad, you will need to add a few things:
+There are a few tricks used by the tool to be able to manage those queries in Redash. If you start from a file generated from the `dump` command, you will need to add a few things:
 
 - `redpush_id` Each query and visualization needs this, it is a unique id (uint) (not repeated in any query in a redash deployment) for redpush to be able to track the queries. The tool doesn't check if they are repeated or not, that is up to your tests or how you manage the _YAML_ file.
 
@@ -35,7 +35,7 @@ This is to serialize the dashboards from a redash server to  _yaml_. More for de
 ## Example file
 
 '''yaml
-- name: 'A exmaple query'
+- name: 'A example query'
   description:
   redpush_id: 1002  # some UNIQUE ID that will be used to track this query
   query: |-
@@ -44,8 +44,11 @@ This is to serialize the dashboards from a redash server to  _yaml_. More for de
   visualizations:
   - description: ''
     redpush_id: 2 # some UNIQUE ID (inside the query) that will be used to track this visualization
-    redpush_dashboards: 
-      - my-business # the name of a dashboard were to add this visual
+    redpush_dashboards:
+      - name: my-business # the name of a dashboard were to add this visual
+        row: 1   # in which row you want this graph
+        col: 0   # in which column, can be [0,1,2]
+        size: small  # size of the widget, a row fits: 3 small, 2 medium, 1 big
     type: CHART
     options:
       bottomMargin: 50
@@ -96,7 +99,7 @@ The easiest way to use this project is using docker and virtualenv.
 
 You can easily run a redash server locally using docker:
 
-1. `docker-compose run -d`
+1. `docker-compose up -d`
 2. Wait until all services are running and then `docker exec -it redpush_server_1 ./manage.py database create_tables`
 3. Go to `localhost:5000` and finish the setup of Redash (you need to add one data source)
 
@@ -107,6 +110,6 @@ If you want to to start over the server, you can:
 3. `rm -rf clickhouse-data/ postgres-data/` to remove the data of the dbs
 4. Create everything again
 
-## Tricks used 
+## Tricks used
 
 Redash API is created to be used from a web UI tool, not from a tool like this. Some hacks are created for it to work. That's the `redpush_id` that was mentioned before. Those are also stored inside the redash server, but as the server doesn't allow to add new fields to the objects (rightfully so) we found that the `options` property it is a key/value anything goes. So we abuse it to store there the internal IDs that redpush uses to match the objects. The tool also when exporting/importing takes care of adding/removing it from the `options` and putting it as a property of the object.
