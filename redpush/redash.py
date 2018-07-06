@@ -231,8 +231,8 @@ class Redash:
         }
 
         sizeYDef = {    # defining how big in X the widgets are
-            'small': 4,
-            'medium': 8,
+            'small': 5,
+            'medium': 9,
             'large': 12
         }
         multiplier = multiplierDef[size]
