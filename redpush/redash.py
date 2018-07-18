@@ -14,10 +14,12 @@ class Redash:
         self.url = url
         self.api_key = api_key
 
-    def Get_Queries(self):
+    def Get_Queries(self, dontfilter=False):
         """
             Get all queries from the given redash server
             It does so in bulk queries. But it doesn't get the visualizations
+            In case that you don't want to get extra contents from the queries to be filtered
+            you can pass the dontfilter param.
         """
         queries = [] 
         headers = {'Authorization': 'Key {}'.format(self.api_key)}
@@ -30,7 +32,8 @@ class Redash:
             has_more = page * response['page_size'] + 1 <= response['count']
             page += 1
 
-        queries = self.filter_fields_query_list(queries)
+        if not dontfilter:
+            queries = self.filter_fields_query_list(queries)
         return queries
     
     def Get_Full_Queries(self, queries):
@@ -100,6 +103,42 @@ class Redash:
                     self.Put_Visualization(visualization, old_query)
             # print(response)
 
+    def Archive_Missing_Queries(self, server_queries, new_queries):
+        """
+            Make a diff between server_queries and the new_queries,
+            the ones appearing in server_queries but not in new_queries
+            are archived.
+        """
+        headers = {'Authorization': 'Key {}'.format(self.api_key)}
+        path = "{}/api/queries".format(self.url)
+
+        for query in server_queries:
+
+            deleteQuery = False
+            if 'options' in query:
+                if 'redpush_id' in query['options']:
+                    redpush_id = query['options']['redpush_id']
+                    new_query = self.find_by_redpush_id(new_queries, redpush_id)
+                    deleteQuery = new_query == None
+
+                else:
+                    deleteQuery = True
+                    print('Query without tracking id, deleting…', flush=True)
+                    # if query doesn't have redpush_id we will get rid of it
+                
+            else:
+                    deleteQuery = True
+                    print('Query without tracking id, deleting…', flush=True)
+                    # if query doesn't have redpush_id we will get rid of it
+
+            if deleteQuery:
+                # the server query isn't in the file, so we archive it
+                id = query['id']
+                print('deleting query ' + str(id), flush=True)
+                extra_path = '/'+str(id)
+                response = requests.delete(path + extra_path, headers=headers, json=query).json()
+                # if response.status_code != 200:
+                    # print('error deleting query', response)
 
     def Put_Visualization(self, visualization, old_query):
         """
