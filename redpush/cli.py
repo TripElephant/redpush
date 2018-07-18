@@ -1,5 +1,5 @@
 """
-    Tool to manage the queries, graphs and dashboardas in a redash server from yaml definitions.
+    Tool to manage the queries, graphs and dashboards in a redash server from yaml definitions.
     Treating all of them as code, so you can version control them as you should :-)
 """
 import click
@@ -78,6 +78,21 @@ def push(redash_url, api_key, in_file):
 
     new = read_yaml(in_file)
     server.Put_Queries(old_queries, new)
+ 
+@cli.command()
+@click.option('--redash-url',envvar='REDASH_URL')
+@click.option('--api-key',envvar='REDASH_KEY', help="API Key")
+@click.option('-i', '--in-file', help="File to read the queries from", type=str)
+def archive(redash_url, api_key, in_file):
+    
+    if in_file is None:
+        click.echo('No file provided')
+        return
+    server = redash.Redash(redash_url, api_key)
+    server_queries = server.Get_Queries(True)
+
+    new = read_yaml(in_file)
+    server.Archive_Missing_Queries(server_queries, new)
  
 @cli.command()
 @click.option('--redash-url',envvar='REDASH_URL')
