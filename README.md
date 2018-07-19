@@ -34,7 +34,8 @@ This is to serialize the dashboards from a redash server to  _yaml_. More for de
 
 ## Example file
 
-'''yaml
+```yaml
+
 - name: 'An example query'
   description:
   redpush_id: 1002  # some UNIQUE ID that will be used to track this query
@@ -91,7 +92,7 @@ This is to serialize the dashboards from a redash server to  _yaml_. More for de
       legend:
         enabled: false
     name: Chart
-''' 
+```
 
 ## Development
 
@@ -113,3 +114,10 @@ If you want to to start over the server, you can:
 ## Tricks used
 
 Redash API is created to be used from a web UI tool, not from a tool like this. Some hacks are created for it to work. That's the `redpush_id` that was mentioned before. Those are also stored inside the redash server, but as the server doesn't allow to add new fields to the objects (rightfully so) we found that the `options` property it is a key/value anything goes. So we abuse it to store there the internal IDs that redpush uses to match the objects. The tool also when exporting/importing takes care of adding/removing it from the `options` and putting it as a property of the object.
+
+
+## TODOs
+
+- Creating new widgets doesn't mean that they will work, they need to be executed at least once. So far it needs to be done in the UI
+- More documentation and examples
+- Layouting tool isn't very flexible, and has some bugs
