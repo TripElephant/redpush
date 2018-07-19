@@ -124,6 +124,7 @@ Redash API is created to be used from a web UI tool, not from a tool like this. 
 
 ## TODOs
 
+- Error handling. Currently it doesn't handle the errors and expects everything to go smooth. _Wishful thinking_
 - Creating new widgets doesn't mean that they will work, they need to be executed at least once. So far it needs to be done in the UI
 - More documentation and examples
 - Layouting tool isn't very flexible, and has some bugs
