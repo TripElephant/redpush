@@ -19,9 +19,15 @@ There are a few tricks used by the tool to be able to manage those queries in Re
 
 - `redpush_id` Each query and visualization needs this, it is a unique id (uint) (not repeated in any query in a redash deployment) for redpush to be able to track the queries. The tool doesn't check if they are repeated or not, that is up to your tests or how you manage the _YAML_ file.
 
-- `redpush_dashboards` List of the names of the dashboards a visualization should be added to. (Not mandatory if a visualization is not part of a dashboard). If the dashboard is not created it will be created.
+- `redpush_dashboards` List of the names of the dashboards a visualization should be added to. (Not mandatory if a visualization is not part of a dashboard). If the dashboard is not created it will be created. Also the `row`, `column` and `size` that should have that widget in the dashboard. Check the example code in the readme to see how it works
 
-_LIMITATIONS_ There is yet no way to control the position of the widgets in the dashboards. Also the tool adds and modifies things, but so far if you delete something in the _yaml_ it won't be deleted in the server.
+### Archive
+
+Provided a list of queries, and the server, all the queries that are in the server than match at least one of the following conditions will be archived:
+
+- Not having a `redpush_id`.
+- Being in the server but not in the file.
+
 
 ### diff
 
